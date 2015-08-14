@@ -1,0 +1,19 @@
+[Unit]
+Description=Jenkins CI slave
+After=docker.service docker-httpd.service
+Requires=docker.service docker-httpd.service
+
+[Service]
+CPUAccounting=yes
+CPUShares=1000
+MemoryAccounting=yes
+MemoryLimit=8000M
+RestartSec=30s
+ExecStartPre=-/usr/bin/docker kill jenkins-slave
+ExecStartPre=-/usr/bin/docker rm jenkins-slave
+ExecStart=/usr/bin/docker run --privileged --name jenkins-slave -e DOCKER_TMPDIR=/var/lib/docker/tmp/ -v /var/docker/httpd/docs:/docs -v /var/docker/httpd/releases:/releases -v /var/docker/ssh-jenkins-slave:/home/jenkins/.ssh -v /run:/run -v /var/run/docker.sock:/var/run/docker.sock -p 172.17.42.1:2222:22 localhost:5000/jboss_community_ci/jenkins-slave:latest
+ExecStop=-/usr/bin/docker kill jenkins-slave
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

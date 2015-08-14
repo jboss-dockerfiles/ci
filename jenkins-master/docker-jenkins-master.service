@@ -1,0 +1,18 @@
+[Unit]
+Description=Jenkins CI master
+After=docker.service
+Requires=docker.service
+
+[Service]
+MemoryAccounting=yes
+MemoryLimit=5000M
+RestartSec=30s
+Environment="JENKINS_OPTS=--httpsPort=8443 --httpsCertificate=/var/jenkins_home/certs/jenkins.crt --httpsPrivateKey=/var/jenkins_home/certs/jenkins.key"
+ExecStartPre=-/usr/bin/docker kill jenkins-master
+ExecStartPre=-/usr/bin/docker rm jenkins-master
+ExecStart=/usr/bin/docker run --name jenkins-master -v /var/docker/jenkins:/var/jenkins_home jenkins:1.596.1
+ExecStop=-/usr/bin/docker kill jenkins-master
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

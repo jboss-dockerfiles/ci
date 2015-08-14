@@ -1,0 +1,19 @@
+[Unit]
+Description=HTTPD proxy for Jenkins, Docker registry and distribution files
+After=docker.service docker-jenkins-master.service docker-registry.service docker-registry-ui.service
+Requires=docker.service docker-jenkins-master.service docker-registry.service docker-registry-ui.service
+
+[Service]
+CPUAccounting=yes
+CPUShares=500
+MemoryAccounting=yes
+MemoryLimit=500M
+RestartSec=30s
+ExecStartPre=-/usr/bin/docker kill httpd
+ExecStartPre=-/usr/bin/docker rm httpd
+ExecStart=/usr/bin/docker run --name httpd -v /var/docker/ssl-registry:/etc/httpd/ssl -v /var/docker/httpd:/var/www/html --link registry-ui:registry-ui --link registry:registry --link jenkins-master:jenkins -p 80:80 -p 443:443 localhost:5000/jboss_community_ci/httpd:latest
+ExecStop=-/usr/bin/docker kill httpd
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
